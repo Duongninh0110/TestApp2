@@ -14,3 +14,9 @@
 Route::get('/', function () {
     return view('welcome');
 });
+
+// Route::post('members/{id}', 'MemberController@update');
+// Route::get('members', 'MemberController@index');
+// Route::get('members/{id}', 'MemberController@show');
+// Route::post('members', 'MemberController@store');
+
