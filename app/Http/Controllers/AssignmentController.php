@@ -39,9 +39,7 @@ class AssignmentController extends Controller
     }
 
     public function listProjects($id)
-    {   
-        
-
+    {           
         $member = Member::find($id);
         if(!$member) {
             return response()->json(['error'=>'The member does not exist'], 404);die;
