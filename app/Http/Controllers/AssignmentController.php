@@ -25,7 +25,10 @@ class AssignmentController extends Controller
 
     public function listMembers($id)
     {
-
+        $project = Project::find($id);
+        if(!$project) {
+            return response()->json(['error'=>'The Project does not exist'], 404);die;
+        }   
         
         $assignments = Assignment::where(['project_id' => $id])->get();
         $members = [];
@@ -36,7 +39,13 @@ class AssignmentController extends Controller
     }
 
     public function listProjects($id)
-    {
+    {   
+        
+
+        $member = Member::find($id);
+        if(!$member) {
+            return response()->json(['error'=>'The member does not exist'], 404);die;
+        }
 
         $assignments = Assignment::where(['member_id' => $id])->get();        
         $projects = [];
@@ -140,7 +149,7 @@ class AssignmentController extends Controller
     {
         $assignment = Assignment::where(['project_id' => $project_id, 'member_id' => $member_id])->first();
         if(!$assignment) {
-            return response()->json(['error'=>'The assignment does not exist'], 422);
+            return response()->json(['error'=>'The assignment does not exist'], 404);
         }
         $assignment->delete();
         return response()->json([
