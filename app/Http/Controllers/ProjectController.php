@@ -17,7 +17,7 @@ class ProjectController extends Controller
      */
     public function index()
     {
-        $projects = Project::All();
+        $projects = Project::orderBy('id', 'desc')->get();
         return response()->json(['data'=>$projects], 200);
     }
 
@@ -53,8 +53,7 @@ class ProjectController extends Controller
 
         $validator = Validator::make($request->all(), $rules);
 
-        if ($validator->fails()) {
-            // dd($validator->messages());
+        if ($validator->fails()) {            
             $errors = $validator->errors();
             return response()->json(['data'=>$errors], 201);die;
         }
@@ -78,7 +77,12 @@ class ProjectController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show($id)
-    {
+    {   
+        if(!$project = Project::find($id)){
+            return response()->json(['error' => 
+                'The Project you want to get does not exist', 'code' => 404], 404);die;
+        }
+
         $project = Project::findOrFail($id);
         return response()->json(['data'=>$project], 200);
     }
@@ -102,7 +106,14 @@ class ProjectController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id)
-    {   
+    {
+        if(!$project = Project::find($id)){
+            return response()->json(['error' => 
+                'The Project you want to update does not exist', 'code' => 404], 404);die;
+        }
+
+        $project = Project::findOrFail($id);
+
         $rules = [
             'name' => 'alpha_spaces|max:10',
             'information' => 'max:300',            
@@ -115,13 +126,12 @@ class ProjectController extends Controller
 
         $validator = Validator::make($request->all(), $rules);
 
-        if ($validator->fails()) {
-            // dd($validator->messages());
+        if ($validator->fails()) {            
             $errors = $validator->errors();
-            return response()->json(['data'=>$errors], 201);die;
+            return response()->json(['error'=>$errors], 201);die;
         }
 
-        $project = Project::findOrFail($id);
+        
         if ($request->has('name')){
             $project->name = $request->input('name');
         }
@@ -158,9 +168,14 @@ class ProjectController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
-    {
+    {   
+        if(!$project = Project::find($id)){
+            return response()->json(['error' => 
+                'The Project you want to delete does not exist', 'code' => 404], 404);die;
+        }
+
         $project = Project::findOrFail($id);
         $project->delete();
-        return response()->json(['data'=>$project], 200);
+        return response()->json(['notice'=>'The project has been deleted', 'project'=>$project], 200);
     }
 }

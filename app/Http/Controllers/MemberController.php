@@ -17,7 +17,7 @@ class MemberController extends Controller
      */
     public function index()
     {
-        $members = Member::All();
+        $members = Member::orderBy('id', 'desc')->get();
         return response()->json(['data'=>$members], 200);
     }
 
@@ -97,7 +97,12 @@ class MemberController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show($id)
-    {
+    {   
+        if(!$member = Member::find($id)){
+            return response()->json(['error' => 
+                'The Memeber you want to get does not exist', 'code' => 404], 404);die;
+        }
+
         $member = Member::findOrFail($id);
         return response()->json(['data'=>$member], 200);
     }
@@ -121,7 +126,12 @@ class MemberController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id)
-    {
+    {   
+        if(!$member = Member::find($id)){
+            return response()->json(['error' => 
+                'The Memeber you want to update does not exist', 'code' => 404], 404);die;
+        }
+
         $member = Member::findOrFail($id);
 
         $startdate = date("Y-m-d", time() - (365*60 * 24*60*60)); 
@@ -181,9 +191,11 @@ class MemberController extends Controller
             $member->gender = $request->input('gender');
         }
 
-        // if (!$member->isDirty()){
-        //         return response()->json(['error' => 'you need to specify different value to update', 'code' => 422], 422);
-        // }
+        if (!$member->isDirty()){
+                return response()->json([
+                    'error' => 'you need to specify different value to update', 
+                    'code' => 422], 422);
+        }
 
         $member->save();
 
@@ -199,9 +211,14 @@ class MemberController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
-    {
+    {   
+        if(!$member = Member::find($id)){
+            return response()->json(['error' => 
+                'The Memeber you want to delete does not exist', 'code' => 404], 404);die;
+        }
+
         $member = Member::findOrFail($id);
         $member->delete();
-        return response()->json(['data'=>$member], 200);
+        return response()->json(['notice'=>'The member has been deleted','member'=>$member], 200);
     }
 }

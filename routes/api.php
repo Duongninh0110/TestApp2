@@ -13,10 +13,6 @@ use Illuminate\Http\Request;
 |
 */
 
-// Route::middleware('auth:api')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
-
 //Member Routes
 Route::resource('members','MemberController');
 
@@ -24,7 +20,8 @@ Route::resource('members','MemberController');
 Route::resource('projects','ProjectController');
 
 //Assignment Routes
+Route::get('assignments', 'AssignmentController@index');
 Route::post('assignments', 'AssignmentController@store');
 Route::get('assignments/project/{id}', 'AssignmentController@listMembers');
 Route::get('assignments/member/{id}', 'AssignmentController@listProjects');
-Route::get('assignments/project/{project_id}/member/{member_id}', 'AssignmentController@destroy');
+Route::delete('assignments/project/{project_id}/member/{member_id}', 'AssignmentController@destroy');

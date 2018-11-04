@@ -17,6 +17,12 @@ class AssignmentController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    public function index()
+    {
+        $assignments = Assignment::orderBy('id', 'desc')->get();
+        return response()->json(['Assignments'=>$assignments], 200);
+    }
+
     public function listMembers($id)
     {
 
@@ -26,7 +32,7 @@ class AssignmentController extends Controller
         foreach ($assignments as $assignment) {
            $members[]= $assignment->member;         
         }
-        return response()->json(['data'=>$members], 200);
+        return response()->json(['members'=>$members], 200);
     }
 
     public function listProjects($id)
@@ -37,7 +43,7 @@ class AssignmentController extends Controller
         foreach ($assignments as $assignment) {
            $projects[]= $assignment->project;           
         }
-        return response()->json(['data'=>$projects], 200); 
+        return response()->json(['projects'=>$projects], 200); 
     }
 
     /**
@@ -58,6 +64,14 @@ class AssignmentController extends Controller
      */
     public function store(Request $request)
     {   
+        $project_id = $request->input('project_id');
+        $member_id = $request->input('member_id');
+        $assignment = Assignment::where(['project_id' => $project_id, 'member_id' => $member_id])->get();
+        
+        if(!$assignment->isempty()) {
+            return response()->json(['error'=>'The assignment already has been made'], 422);
+        }
+
         $rules = [
             'project_id' => 'required|exists:projects,id',
             'member_id' => 'required|exists:members,id',
@@ -68,8 +82,7 @@ class AssignmentController extends Controller
 
         $validator = Validator::make($request->all(), $rules);
 
-        if ($validator->fails()) {
-            // dd($validator->messages());
+        if ($validator->fails()) {            
             $errors = $validator->errors();
             return response()->json(['data'=>$errors], 201);die;
         }
@@ -125,8 +138,13 @@ class AssignmentController extends Controller
      */
     public function destroy($project_id, $member_id)
     {
-        $assignment = Assignment::where(['project_id' => $project_id, 'member_id' => $member_id]);        
+        $assignment = Assignment::where(['project_id' => $project_id, 'member_id' => $member_id])->first();
+        if(!$assignment) {
+            return response()->json(['error'=>'The assignment does not exist'], 422);
+        }
         $assignment->delete();
-        return response()->json(['data'=>$assignment], 200);
+        return response()->json([
+            'notice' => 'The assignments has been deleted',
+            'Assignment'=>$assignment], 200);
     }
 }

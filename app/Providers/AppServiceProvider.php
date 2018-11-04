@@ -30,7 +30,7 @@ class AppServiceProvider extends ServiceProvider
         //Add this custom validation rule.
         Validator::extend('phone_number', function ($attribute, $value) {
         
-            return preg_match('/^[z0-9-().+\/]+$/u', $value);
+            return preg_match('/^[z0-9- ().+\/]+$/u', $value);
         });
 
     }
