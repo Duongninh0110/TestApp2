@@ -127,7 +127,8 @@ return [
     // Custom Validation message.
     'alpha_spaces'         => 'The :attribute may only contain letters spaces hyphen and dot.',
     'accepted'             => 'The :attribute must be accepted.',
-    'my_alpha'         => 'The :attribute may only contain letters spaces, comma, dot, quotation marks and parentheses.',
+    'my_alpha'         =>
+    'The :attribute may only contain letters spaces, comma, dot, quotation marks and parentheses.',
     'accepted'             => 'The :attribute must be accepted.',
     'phone_number'      => 'The :attribute may only contain number and following characters ()-./+',
 

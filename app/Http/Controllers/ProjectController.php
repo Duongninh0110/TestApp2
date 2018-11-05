@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Validator;
 use Illuminate\Http\Request;
+use App\Assignment;
 use App\Project;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Input;
@@ -18,7 +19,7 @@ class ProjectController extends Controller
     public function index()
     {
         $projects = Project::orderBy('id', 'desc')->get();
-        return response()->json(['data'=>$projects], 200);
+        return response()->json(['Projects'=>$projects], 200);
     }
 
     /**
@@ -41,8 +42,8 @@ class ProjectController extends Controller
     {
         $rules = [
             'name' => 'required|alpha_spaces|max:10',
-            'information' => 'max:300',            
-            'deadline' => 'nullable|date|date_format:Y-m-d',            
+            'information' => 'max:300',
+            'deadline' => 'nullable|date|date_format:Y-m-d',
             'type' =>[
             'required',
             Rule::in(['lab', 'single', 'acceptance',])],
@@ -53,9 +54,10 @@ class ProjectController extends Controller
 
         $validator = Validator::make($request->all(), $rules);
 
-        if ($validator->fails()) {            
+        if ($validator->fails()) {
             $errors = $validator->errors();
-            return response()->json(['data'=>$errors], 201);die;
+            return response()->json(['Errors'=>$errors], 201);
+            die;
         }
 
         $project = new Project;
@@ -63,11 +65,13 @@ class ProjectController extends Controller
         $project->information = $request->input('information');
         $project->deadline = $request->input('deadline');
         $project->type = $request->input('type');
-        $project->status = $request->input('status');        
+        $project->status = $request->input('status');
         
         $project->save();
 
-        return response()->json(['data'=>$project], 201);
+        return response()->json([
+            'Notice'=>'the Project has been created',
+            'Project'=>$project], 201);
     }
 
     /**
@@ -77,14 +81,15 @@ class ProjectController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show($id)
-    {   
-        if(!$project = Project::find($id)){
-            return response()->json(['error' => 
-                'The Project you want to get does not exist', 'code' => 404], 404);die;
+    {
+        if (!$project = Project::find($id)) {
+            return response()->json(['error' =>
+                'The Project you want to get does not exist', 'code' => 404], 404);
+            die;
         }
 
         $project = Project::findOrFail($id);
-        return response()->json(['data'=>$project], 200);
+        return response()->json(['Project'=>$project], 200);
     }
 
     /**
@@ -107,17 +112,18 @@ class ProjectController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if(!$project = Project::find($id)){
-            return response()->json(['error' => 
-                'The Project you want to update does not exist', 'code' => 404], 404);die;
+        if (!$project = Project::find($id)) {
+            return response()->json(['error' =>
+                'The Project you want to update does not exist', 'code' => 404], 404);
+            die;
         }
 
         $project = Project::findOrFail($id);
 
         $rules = [
             'name' => 'alpha_spaces|max:10',
-            'information' => 'max:300',            
-            'deadline' => 'nullable|date|date_format:Y-m-d',            
+            'information' => 'max:300',
+            'deadline' => 'nullable|date|date_format:Y-m-d',
             'type' =>
             Rule::in(['lab', 'single', 'acceptance',]),
             'status' =>
@@ -126,39 +132,43 @@ class ProjectController extends Controller
 
         $validator = Validator::make($request->all(), $rules);
 
-        if ($validator->fails()) {            
+        if ($validator->fails()) {
             $errors = $validator->errors();
-            return response()->json(['error'=>$errors], 201);die;
+            return response()->json(['error'=>$errors], 201);
+            die;
         }
 
         
-        if ($request->has('name')){
+        if ($request->has('name')) {
             $project->name = $request->input('name');
         }
 
-        if ($request->has('information')){
+        if ($request->has('information')) {
             $project->information = $request->input('information');
-        }       
+        }
 
-        if ($request->has('deadline')){
+        if ($request->has('deadline')) {
             $project->deadline = $request->input('deadline');
         }
 
-        if ($request->has('type')){
+        if ($request->has('type')) {
             $project->type = $request->input('type');
         }
 
-        if ($request->has('status')){
+        if ($request->has('status')) {
             $project->status = $request->input('status');
-        }       
+        }
 
-        if (!$project->isDirty()){
-                return response()->json(['error' => 'you need to specify different value to update', 'code' => 422], 422);
+        if (!$project->isDirty()) {
+                return response()->json(['error' =>
+                    'you need to specify different value to update', 'code' => 422], 422);
         }
 
         $project->save();
 
-        return response()->json(['data'=>$project], 200);
+        return response()->json([
+            'Notice'=>'The Project has been updated',
+            'Project'=>$project], 200);
     }
 
     /**
@@ -168,10 +178,19 @@ class ProjectController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
-    {   
-        if(!$project = Project::find($id)){
-            return response()->json(['error' => 
-                'The Project you want to delete does not exist', 'code' => 404], 404);die;
+    {
+        $assignment = Assignment::where(['project_id' => $id])->get();
+        // dd($assignment);
+        if (!$assignment->isempty()) {
+            return response()->json(['error'=>
+                'There is assignment for this project, Please remove the assignment before delete the project'], 404);
+            die;
+        }
+
+        if (!$project = Project::find($id)) {
+            return response()->json(['error' =>
+                'The Project you want to delete does not exist', 'code' => 404], 404);
+            die;
         }
 
         $project = Project::findOrFail($id);

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Validator;
 use Illuminate\Http\Request;
+use App\Assignment;
 use App\Member;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Validation\Rule;
@@ -18,7 +19,7 @@ class MemberController extends Controller
     public function index()
     {
         $members = Member::orderBy('id', 'desc')->get();
-        return response()->json(['data'=>$members], 200);
+        return response()->json(['Member'=>$members], 200);
     }
 
     /**
@@ -28,8 +29,7 @@ class MemberController extends Controller
      */
     public function create()
     {
-        
-
+        //
     }
 
     /**
@@ -40,8 +40,8 @@ class MemberController extends Controller
      */
 
     public function store(Request $request)
-    {   $startdate = date("Y-m-d", time() - (365*60 * 24*60*60)); 
-
+    {
+        $startdate = date("Y-m-d", time() - (365*60 * 24*60*60));
         $rules = [
             'name' => 'required|alpha_spaces|max:50',
             'information' => 'max:300',
@@ -59,9 +59,9 @@ class MemberController extends Controller
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
-            // dd($validator->messages());
             $errors = $validator->errors();
-            return response()->json(['data'=>$errors], 201);die;
+            return response()->json(['data'=>$errors], 201);
+            die;
         }
         
 
@@ -75,19 +75,21 @@ class MemberController extends Controller
         $member->gender = $request->input('gender');
        
         if ($request->hasFile('avatar')) {
-            $image_tmp = Input::file('avatar');                
+            $image_tmp = Input::file('avatar');
             if ($image_tmp->isvalid()) {
                 $extension = $image_tmp->getClientOriginalExtension();
                 $filename = time().'.'.$extension;
-                $image_path = 'images/avatars/';                    
-                $image_tmp->move($image_path, $filename);                    
+                $image_path = 'images/avatars/';
+                $image_tmp->move($image_path, $filename);
                 $member->avatar = $filename;
             }
         }
     
         $member->save();
 
-        return response()->json(['data'=>$member], 201);
+        return response()->json([
+            'Notice'=>'The member has been added',
+            'Member'=>$member], 201);
     }
 
     /**
@@ -97,14 +99,15 @@ class MemberController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show($id)
-    {   
-        if(!$member = Member::find($id)){
-            return response()->json(['error' => 
-                'The Memeber you want to get does not exist', 'code' => 404], 404);die;
+    {
+        if (!$member = Member::find($id)) {
+            return response()->json(['error' =>
+                'The Memeber you want to get does not exist', 'code' => 404], 404);
+            die;
         }
 
         $member = Member::findOrFail($id);
-        return response()->json(['data'=>$member], 200);
+        return response()->json(['Member'=>$member], 200);
     }
 
     /**
@@ -126,15 +129,16 @@ class MemberController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id)
-    {   
-        if(!$member = Member::find($id)){
-            return response()->json(['error' => 
-                'The Memeber you want to update does not exist', 'code' => 404], 404);die;
+    {
+        if (!$member = Member::find($id)) {
+            return response()->json(['error' =>
+                'The Memeber you want to update does not exist', 'code' => 404], 404);
+            die;
         }
 
         $member = Member::findOrFail($id);
 
-        $startdate = date("Y-m-d", time() - (365*60 * 24*60*60)); 
+        $startdate = date("Y-m-d", time() - (365*60 * 24*60*60));
 
         $rules = [
             'name' => 'alpha_spaces|max:50',
@@ -142,7 +146,7 @@ class MemberController extends Controller
             'phone_number' => 'phone_number|max:20',
             'date_of_birth' => 'date|date_format:Y-m-d|before:tomorrow|after:'.$startdate,
             'avatar' => 'mimes:jpeg,png,gif|max:10240',
-            'position' =>            
+            'position' =>
             Rule::in(['intern', 'junior', 'senior', 'pm', 'ceo', 'cto', 'bo']),
             'gender' =>
             Rule::in(['male', 'female']),
@@ -153,55 +157,56 @@ class MemberController extends Controller
         if ($validator->fails()) {
             // dd($validator->messages());
             $errors = $validator->errors();
-            return response()->json(['data'=>$errors], 201);die;
-        }   
+            return response()->json(['Error'=>$errors], 201);
+            die;
+        }
 
-        if ($request->has('name')){
+        if ($request->has('name')) {
             $member->name = $request->input('name');
         }
 
-        if ($request->has('information')){
+        if ($request->has('information')) {
             $member->information = $request->input('information');
         }
 
-        if ($request->has('date_of_birth')){
+        if ($request->has('date_of_birth')) {
             $member->date_of_birth = $request->input('date_of_birth');
         }
 
-        if ($request->has('phone_number')){
+        if ($request->has('phone_number')) {
             $member->phone_number = $request->input('phone_number');
         }
 
         if ($request->hasFile('avatar')) {
-            $image_tmp = Input::file('avatar');                
+            $image_tmp = Input::file('avatar');
             if ($image_tmp->isvalid()) {
                 $extension = $image_tmp->getClientOriginalExtension();
                 $filename = time().'.'.$extension;
-                $image_path = 'images/avatars/';                    
-                $image_tmp->move($image_path, $filename);                    
+                $image_path = 'images/avatars/';
+                $image_tmp->move($image_path, $filename);
                 $member->avatar = $filename;
             }
         }
 
-        if ($request->has('position')){
+        if ($request->has('position')) {
             $member->position = $request->input('position');
         }
 
-        if ($request->has('gender')){
+        if ($request->has('gender')) {
             $member->gender = $request->input('gender');
         }
 
-        if (!$member->isDirty()){
+        if (!$member->isDirty()) {
                 return response()->json([
-                    'error' => 'you need to specify different value to update', 
+                    'error' => 'you need to specify different value to update',
                     'code' => 422], 422);
         }
 
         $member->save();
 
-        return response()->json(['data'=>$member], 200);
-
-
+        return response()->json([
+            'Notice'=>'The Member has been updated successfully',
+            'Member'=>$member], 200);
     }
 
     /**
@@ -211,10 +216,18 @@ class MemberController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
-    {   
-        if(!$member = Member::find($id)){
-            return response()->json(['error' => 
-                'The Memeber you want to delete does not exist', 'code' => 404], 404);die;
+    {
+        $assignment = Assignment::where(['member_id' => $id])->get();
+        if (!$assignment->isempty()) {
+            return response()->json(['error'=>
+                'There is assignment for this member, Please remove the assignment before delete the member'], 404);
+            die;
+        }
+
+        if (!$member = Member::find($id)) {
+            return response()->json(['error' =>
+                'The Memeber you want to delete does not exist', 'code' => 404], 404);
+            die;
         }
 
         $member = Member::findOrFail($id);

@@ -26,31 +26,33 @@ class AssignmentController extends Controller
     public function listMembers($id)
     {
         $project = Project::find($id);
-        if(!$project) {
-            return response()->json(['error'=>'The Project does not exist'], 404);die;
-        }   
+        if (!$project) {
+            return response()->json(['error'=>'The Project does not exist'], 404);
+            die;
+        }
         
         $assignments = Assignment::where(['project_id' => $id])->get();
         $members = [];
         foreach ($assignments as $assignment) {
-           $members[]= $assignment->member;         
+            $members[]= $assignment->member;
         }
         return response()->json(['members'=>$members], 200);
     }
 
     public function listProjects($id)
-    {           
+    {
         $member = Member::find($id);
-        if(!$member) {
-            return response()->json(['error'=>'The member does not exist'], 404);die;
+        if (!$member) {
+            return response()->json(['error'=>'The member does not exist'], 404);
+            die;
         }
 
-        $assignments = Assignment::where(['member_id' => $id])->get();        
+        $assignments = Assignment::where(['member_id' => $id])->get();
         $projects = [];
         foreach ($assignments as $assignment) {
-           $projects[]= $assignment->project;           
+            $projects[]= $assignment->project;
         }
-        return response()->json(['projects'=>$projects], 200); 
+        return response()->json(['projects'=>$projects], 200);
     }
 
     /**
@@ -70,12 +72,12 @@ class AssignmentController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    {   
+    {
         $project_id = $request->input('project_id');
         $member_id = $request->input('member_id');
         $assignment = Assignment::where(['project_id' => $project_id, 'member_id' => $member_id])->get();
         
-        if(!$assignment->isempty()) {
+        if (!$assignment->isempty()) {
             return response()->json(['error'=>'The assignment already has been made'], 422);
         }
 
@@ -84,14 +86,15 @@ class AssignmentController extends Controller
             'member_id' => 'required|exists:members,id',
             'role' =>[
             'required',
-            Rule::in(['dev', 'pl', 'pm', 'po', 'sm'])],            
+            Rule::in(['dev', 'pl', 'pm', 'po', 'sm'])],
         ];
 
         $validator = Validator::make($request->all(), $rules);
 
-        if ($validator->fails()) {            
+        if ($validator->fails()) {
             $errors = $validator->errors();
-            return response()->json(['data'=>$errors], 201);die;
+            return response()->json(['Error'=>$errors], 201);
+            die;
         }
 
         $assignment = new Assignment;
@@ -100,7 +103,9 @@ class AssignmentController extends Controller
         $assignment->role = $request->input('role');
         $assignment->save();
 
-        return response()->json(['data'=>$assignment], 200); 
+        return response()->json([
+            'Notice'=>'The assignment has been made',
+            'Assignment'=>$assignment], 200);
     }
 
     /**
@@ -132,9 +137,32 @@ class AssignmentController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $project_id, $member_id)
     {
-        //
+        $assignment = Assignment::where(['project_id' => $project_id, 'member_id' => $member_id])->first();
+        if (!$assignment) {
+            return response()->json(['error'=>'The assignment does not exist'], 404);
+        }
+
+        $rules = [
+            'role' =>[
+            Rule::in(['dev', 'pl', 'pm', 'po', 'sm'])],
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['Error'=>$errors], 201);
+            die;
+        }
+
+        $assignment->role = $request->input('role');
+        $assignment->save();
+
+        return response()->json([
+            'notice' => 'The assignment has been updated successfully',
+            'Assignment' => $assignment], 200);
     }
 
     /**
@@ -146,7 +174,7 @@ class AssignmentController extends Controller
     public function destroy($project_id, $member_id)
     {
         $assignment = Assignment::where(['project_id' => $project_id, 'member_id' => $member_id])->first();
-        if(!$assignment) {
+        if (!$assignment) {
             return response()->json(['error'=>'The assignment does not exist'], 404);
         }
         $assignment->delete();
