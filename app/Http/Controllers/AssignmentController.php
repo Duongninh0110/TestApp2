@@ -26,7 +26,7 @@ class AssignmentController extends Controller
     public function listMembers($id)
     {
         $project = Project::find($id);
-        if (!$project) {
+        if (preg_match('/^[0-9]+$/', $id) === 0 || !$project) {
             return response()->json(['error'=>'The Project does not exist'], 404);
             die;
         }
@@ -42,7 +42,7 @@ class AssignmentController extends Controller
     public function listProjects($id)
     {
         $member = Member::find($id);
-        if (!$member) {
+        if (preg_match('/^[0-9]+$/', $id) === 0 || !$member) {
             return response()->json(['error'=>'The member does not exist'], 404);
             die;
         }
@@ -140,7 +140,7 @@ class AssignmentController extends Controller
     public function update(Request $request, $project_id, $member_id)
     {
         $assignment = Assignment::where(['project_id' => $project_id, 'member_id' => $member_id])->first();
-        if (!$assignment) {
+        if (preg_match('/^[0-9]+$/', $project_id) === 0 || preg_match('/^[0-9]+$/', $member_id) === 0 || !$assignment) {
             return response()->json(['error'=>'The assignment does not exist'], 404);
         }
 
@@ -174,7 +174,7 @@ class AssignmentController extends Controller
     public function destroy($project_id, $member_id)
     {
         $assignment = Assignment::where(['project_id' => $project_id, 'member_id' => $member_id])->first();
-        if (!$assignment) {
+        if (preg_match('/^[0-9]+$/', $project_id) === 0 || preg_match('/^[0-9]+$/', $member_id) === 0 || !$assignment) {
             return response()->json(['error'=>'The assignment does not exist'], 404);
         }
         $assignment->delete();

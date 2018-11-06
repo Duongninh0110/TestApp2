@@ -82,7 +82,7 @@ class ProjectController extends Controller
      */
     public function show($id)
     {
-        if (!$project = Project::find($id)) {
+        if (preg_match('/^[0-9]+$/', $id) === 0 || !$project = Project::find($id)) {
             return response()->json(['error' =>
                 'The Project you want to get does not exist', 'code' => 404], 404);
             die;
@@ -112,7 +112,7 @@ class ProjectController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (!$project = Project::find($id)) {
+        if (preg_match('/^[0-9]+$/', $id) === 0 || !$project = Project::find($id)) {
             return response()->json(['error' =>
                 'The Project you want to update does not exist', 'code' => 404], 404);
             die;
@@ -179,15 +179,14 @@ class ProjectController extends Controller
      */
     public function destroy($id)
     {
-        $assignment = Assignment::where(['project_id' => $id])->get();
-        // dd($assignment);
-        if (!$assignment->isempty()) {
+        $assignment = Assignment::where(['project_id' => $id])->get();        
+        if (preg_match('/^[0-9]+$/', $id) === 1 && !$assignment->isempty()) {
             return response()->json(['error'=>
                 'There is assignment for this project, Please remove the assignment before delete the project'], 404);
             die;
         }
 
-        if (!$project = Project::find($id)) {
+        if (preg_match('/^[0-9]+$/', $id) === 0 || !$project = Project::find($id)) {
             return response()->json(['error' =>
                 'The Project you want to delete does not exist', 'code' => 404], 404);
             die;

@@ -100,7 +100,7 @@ class MemberController extends Controller
      */
     public function show($id)
     {
-        if (!$member = Member::find($id)) {
+        if (preg_match('/^[0-9]+$/', $id) === 0 || !$member = Member::find($id)) {
             return response()->json(['error' =>
                 'The Memeber you want to get does not exist', 'code' => 404], 404);
             die;
@@ -130,7 +130,7 @@ class MemberController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (!$member = Member::find($id)) {
+        if (preg_match('/^[0-9]+$/', $id) === 0 || !$member = Member::find($id)) {
             return response()->json(['error' =>
                 'The Memeber you want to update does not exist', 'code' => 404], 404);
             die;
@@ -218,13 +218,13 @@ class MemberController extends Controller
     public function destroy($id)
     {
         $assignment = Assignment::where(['member_id' => $id])->get();
-        if (!$assignment->isempty()) {
+        if (preg_match('/^[0-9]+$/', $id) === 1 && !$assignment->isempty()) {
             return response()->json(['error'=>
                 'There is assignment for this member, Please remove the assignment before delete the member'], 404);
             die;
         }
 
-        if (!$member = Member::find($id)) {
+        if (preg_match('/^[0-9]+$/', $id) === 0 || !$member = Member::find($id)) {
             return response()->json(['error' =>
                 'The Memeber you want to delete does not exist', 'code' => 404], 404);
             die;
