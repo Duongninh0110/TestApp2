@@ -6,7 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <script>window.laravel = { csrfToken: '{{ csrf_token() }}'}</script>
-        <title>Test App 2</title>
+        <title>Test app 2</title>
 
         <!-- Fonts -->
         <link href="https://fonts.googleapis.com/css?family=Raleway:100,600" rel="stylesheet" type="text/css">
@@ -18,7 +18,7 @@
         <div id="app">
             <navbar></navbar>  
             <div class="container">
-                <members></members>
+                <assignments></assignments>
             </div>
         </div>
         <script src="https://unpkg.com/vue@2.0.3/dist/vue.js"></script>

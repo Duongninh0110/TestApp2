@@ -19,7 +19,7 @@ class MemberController extends Controller
     public function index()
     {
         $members = Member::orderBy('id', 'desc')->get();
-        return response()->json(['Member'=>$members], 200);
+        return response()->json(['data'=>$members]);
     }
 
     /**
@@ -47,7 +47,7 @@ class MemberController extends Controller
             'information' => 'max:300',
             'phone_number' => 'required|phone_number|max:20',
             'date_of_birth' => 'required|date|date_format:Y-m-d|before:tomorrow|after:'.$startdate,
-            'avatar' => 'mimes:jpeg,png,gif|max:10240',
+            'avatar' => 'nullable|mimes:jpeg,png,gif|max:10240',
             'position' =>[
             'required',
             Rule::in(['intern', 'junior', 'senior', 'pm', 'ceo', 'cto', 'bo'])],
@@ -59,8 +59,8 @@ class MemberController extends Controller
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
-            $errors = $validator->errors();
-            return response()->json(['data'=>$errors], 201);
+            $errors = $validator->messages()->all();
+            return response()->json(['error'=>$errors]);
             die;
         }
         
@@ -141,43 +141,45 @@ class MemberController extends Controller
         $startdate = date("Y-m-d", time() - (365*60 * 24*60*60));
 
         $rules = [
-            'name' => 'alpha_spaces|max:50',
+            'name' => 'nullable|alpha_spaces|max:50',
             'information' => 'max:300',
-            'phone_number' => 'phone_number|max:20',
-            'date_of_birth' => 'date|date_format:Y-m-d|before:tomorrow|after:'.$startdate,
-            'avatar' => 'mimes:jpeg,png,gif|max:10240',
-            'position' =>
-            Rule::in(['intern', 'junior', 'senior', 'pm', 'ceo', 'cto', 'bo']),
-            'gender' =>
-            Rule::in(['male', 'female']),
+            'phone_number' => 'nullable|phone_number|max:20',
+            'date_of_birth' => 'nullable|date|date_format:Y-m-d|before:tomorrow|after:'.$startdate,
+            'avatar' => 'nullable|sometimes|mimes:jpeg,png,gif|max:10240',
+            'position' =>[
+            'nullable',
+            Rule::in(['intern', 'junior', 'senior', 'pm', 'ceo', 'cto', 'bo'])],
+            'gender' =>[
+            'nullable',
+            Rule::in(['male', 'female'])],
         ];
 
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             // dd($validator->messages());
-            $errors = $validator->errors();
-            return response()->json(['Error'=>$errors], 201);
+            $errors = $validator->messages()->all();
+            return response()->json(['error'=>$errors]);
             die;
         }
 
-        if ($request->has('name')) {
+        if (!empty($request->input('name'))) {
             $member->name = $request->input('name');
         }
 
-        if ($request->has('information')) {
+        if (!empty($request->input('information'))) {
             $member->information = $request->input('information');
         }
 
-        if ($request->has('date_of_birth')) {
+        if (!empty($request->input('date_of_birth'))) {
             $member->date_of_birth = $request->input('date_of_birth');
         }
 
-        if ($request->has('phone_number')) {
+        if (!empty($request->input('phone_number'))) {
             $member->phone_number = $request->input('phone_number');
         }
 
-        if ($request->hasFile('avatar')) {
+        if ($request->has('avatar')) {
             $image_tmp = Input::file('avatar');
             if ($image_tmp->isvalid()) {
                 $extension = $image_tmp->getClientOriginalExtension();
@@ -188,25 +190,25 @@ class MemberController extends Controller
             }
         }
 
-        if ($request->has('position')) {
+        if (!empty($request->input('position'))) {
             $member->position = $request->input('position');
         }
 
-        if ($request->has('gender')) {
+        if (!empty($request->input('gender'))) {
             $member->gender = $request->input('gender');
         }
 
-        if (!$member->isDirty()) {
-                return response()->json([
-                    'error' => 'you need to specify different value to update',
-                    'code' => 422], 422);
-        }
+        // if (!$member->isDirty()) {
+        //         return response()->json([
+        //             'error' => 'you need to specify different value to update'
+        //             ]);
+        // }
 
         $member->save();
 
         return response()->json([
             'Notice'=>'The Member has been updated successfully',
-            'Member'=>$member], 200);
+            'Member'=>$member]);
     }
 
     /**
@@ -220,18 +222,18 @@ class MemberController extends Controller
         $assignment = Assignment::where(['member_id' => $id])->get();
         if (preg_match('/^[0-9]+$/', $id) === 1 && !$assignment->isempty()) {
             return response()->json(['error'=>
-                'There is assignment for this member, Please remove the assignment before delete the member'], 404);
+                'There is assignment for this member, Please remove the assignment before delete the member']);
             die;
         }
 
         if (preg_match('/^[0-9]+$/', $id) === 0 || !$member = Member::find($id)) {
             return response()->json(['error' =>
-                'The Memeber you want to delete does not exist', 'code' => 404], 404);
+                'The Memeber you want to delete does not exist']);
             die;
         }
 
         $member = Member::findOrFail($id);
         $member->delete();
-        return response()->json(['notice'=>'The member has been deleted','member'=>$member], 200);
+        return response()->json(['notice'=>'The member has been deleted','member'=>$member]);
     }
 }

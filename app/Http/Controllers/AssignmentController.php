@@ -20,7 +20,7 @@ class AssignmentController extends Controller
     public function index()
     {
         $assignments = Assignment::orderBy('id', 'desc')->get();
-        return response()->json(['Assignments'=>$assignments], 200);
+        return response()->json(['data'=>$assignments]);
     }
 
     public function listMembers($id)
@@ -78,7 +78,7 @@ class AssignmentController extends Controller
         $assignment = Assignment::where(['project_id' => $project_id, 'member_id' => $member_id])->get();
         
         if (!$assignment->isempty()) {
-            return response()->json(['error'=>'The assignment already has been made'], 422);
+            return response()->json(['error'=>['duplicate'=>'The assignment already has been made']]);
         }
 
         $rules = [
@@ -92,8 +92,8 @@ class AssignmentController extends Controller
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
-            $errors = $validator->errors();
-            return response()->json(['Error'=>$errors], 201);
+            $errors = $validator->messages()->all();
+            return response()->json(['error'=>$errors], 201);
             die;
         }
 
@@ -104,8 +104,8 @@ class AssignmentController extends Controller
         $assignment->save();
 
         return response()->json([
-            'Notice'=>'The assignment has been made',
-            'Assignment'=>$assignment], 200);
+            'Notice'=>'The assignment has been made'
+            ]);
     }
 
     /**
@@ -171,15 +171,13 @@ class AssignmentController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($project_id, $member_id)
+    public function destroy($id)
     {
-        $assignment = Assignment::where(['project_id' => $project_id, 'member_id' => $member_id])->first();
-        if (preg_match('/^[0-9]+$/', $project_id) === 0 || preg_match('/^[0-9]+$/', $member_id) === 0 || !$assignment) {
-            return response()->json(['error'=>'The assignment does not exist'], 404);
-        }
+        $assignment = Assignment::find($id);
+        
         $assignment->delete();
         return response()->json([
             'notice' => 'The assignments has been deleted',
-            'Assignment'=>$assignment], 200);
+            'Assignment'=>$assignment]);
     }
 }

@@ -24,5 +24,5 @@ Route::get('assignments', 'AssignmentController@index');
 Route::post('assignments', 'AssignmentController@store');
 Route::get('assignments/project/{id}', 'AssignmentController@listMembers');
 Route::get('assignments/member/{id}', 'AssignmentController@listProjects');
-Route::delete('assignments/project/{project_id}/member/{member_id}', 'AssignmentController@destroy');
+Route::delete('assignments/{id}', 'AssignmentController@destroy');
 Route::put('assignments/project/{project_id}/member/{member_id}', 'AssignmentController@update');
